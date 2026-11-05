@@ -1,0 +1,64 @@
+{
+  "name": "shim-vscode-extension",
+  "displayName": "SHIM — Adaptive API Compatibility Guard",
+  "description": "Zero-downtime API evolution guard. Detects breaking response schema changes in real-time and auto-bridges equivalent fields.",
+  "version": "1.0.1",
+  "publisher": "sharma-daksh",
+  "author": {
+    "name": "Daksh Sharma"
+  },
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sharma-daksh"
+  },
+  "keywords": [
+    "api",
+    "proxy",
+    "rest",
+    "schema",
+    "drift",
+    "compatibility",
+    "testing"
+  ],
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other",
+    "Testing",
+    "Linters"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "SHIM API Guard",
+      "properties": {
+        "shim.gatewayUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8000",
+          "description": "The URL of your running SHIM proxy gateway."
+        },
+        "shim.apiKey": {
+          "type": "string",
+          "default": "shim_live_default_key",
+          "description": "Your project API key."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "shim.openConsole",
+        "title": "SHIM: Open Developer Console"
+      },
+      {
+        "command": "shim.scanEndpoints",
+        "title": "SHIM: Scan Connected APIs for Schema Drift"
+      }
+    ]
+  }
+}

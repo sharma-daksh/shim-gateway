@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHIM — Developer Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06070a;
+      --surface: rgba(13, 15, 22, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(255, 255, 255, 0.16);
+      --crimson: #e11d48;
+      --emerald: #10b981;
+      --cyan: #38bdf8;
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 0%, rgba(225, 29, 72, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 0%, rgba(56, 189, 248, 0.06) 0%, transparent 35%);
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.15rem 2.5rem;
+      background: rgba(6, 7, 10, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-icon {
+      width: 14px;
+      height: 18px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #fb7185 0%, #e11d48 100%);
+      box-shadow: 0 0 12px rgba(225, 29, 72, 0.7);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1240px;
+      margin: 2.5rem auto;
+      padding: 0 2rem;
+    }
+
+    .page-head {
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-size: 1.95rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.35rem;
+    }
+
+    .page-sub {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 300;
+    }
+
+    /* Top Stats Bar */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 860px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.35rem;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    .stat-num {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    /* Balanced 2-Column Grid (Both columns stretch cleanly and fill the height) */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 960px) {
+      .grid-layout { grid-template-columns: 1fr; }
+    }
+
+    .grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel.fill-height {
+      flex: 1;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.15rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    /* Mapping Rule Item */
+    .mapping-item {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .mapping-fields {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.84rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .field-source {
+      color: #fb7185;
+      background: rgba(244, 63, 94, 0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .field-target {
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .mapping-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .btn-approve {
+      background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.45rem 0.95rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-approve:hover {
+      box-shadow: 0 0 15px rgba(225, 29, 72, 0.5);
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .pill-approved { background: rgba(16, 185, 129, 0.18); color: #34d399; }
+    .pill-pending { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
+
+    /* Telemetry Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.6rem 0.7rem;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.7rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #93c5fd;
+    }
+
+    /* Integration Snippet Box */
+    .snippet-box {
+      background: #030305;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.15rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation (Removed Port 8000) -->
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-icon"></div>
+      <span>SHIM Console</span>
+    </a>
+    <a href="/" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">View Website &rarr;</a>
+  </header>
+
+  <div class="container">
+    <div class="page-head">
+      <h1 class="page-title">Live API Console</h1>
+      <p class="page-sub">Review active field mappings and inspect requests routed through your local proxy.</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Requests</div>
+        <div class="stat-num" id="stat-requests">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Transformed</div>
+        <div class="stat-num" id="stat-bridged" style="color: var(--emerald);">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Rules</div>
+        <div class="stat-num" id="stat-mappings">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Latency</div>
+        <div class="stat-num" id="stat-latency" style="color: var(--cyan);">-- ms</div>
+      </div>
+    </div>
+
+    <!-- Balanced 2-Column Grid -->
+    <div class="grid-layout">
+      <!-- Column 1: Field Mappings & Active Rules -->
+      <div class="grid-col">
+        <div class="panel fill-height">
+          <div class="panel-header">
+            <div class="panel-title">Field Mappings</div>
+            <button onclick="loadMappings()" style="background: none; border: 1px solid var(--border); color: #fff; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">Refresh</button>
+          </div>
+          <div id="mappings-list" style="flex: 1;">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Loading mappings...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Routing Example & Recent Ingress Requests -->
+      <div class="grid-col">
+        <!-- Routing Example Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Routing Example</div>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">
+            Point your API calls to port 8000:
+          </p>
+          <pre class="snippet-box">import requests
+
+res = requests.get(
+    <span style="color:#86efac;">"http://localhost:8000/payments/P101"</span>,
+    headers={<span style="color:#93c5fd;">"X-API-Key"</span>: <span style="color:#86efac;">"shim_live_default_key"</span>}
+)
+data = res.json()</pre>
+        </div>
+
+        <!-- Recent Ingress Requests Panel -->
+        <div class="panel fill-height">
+          <div class="panel-header">
+            <div class="panel-title">Recent Requests</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Endpoint</th>
+                <th>Status</th>
+                <th>Transformed</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody id="telemetry-tbody">
+              <tr><td colspan="5" style="color: var(--text-muted);">Listening for requests...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authToken = '';
+
+    async function initAuth() {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username_or_email: 'admin', password: 'admin123'})
+        });
+        if (res.ok) {
+          const data = await res.json();
+          authToken = data.token;
+          refreshAll();
+        }
+      } catch (err) {
+        console.error('Console auth err:', err);
+      }
+    }
+
+    async function refreshAll() {
+      loadStats();
+      loadMappings();
+      loadTelemetry();
+    }
+
+    async function loadStats() {
+      const headers = authToken ? {'Authorization': `Bearer ${authToken}`} : {};
+      try {
+        const res = await fetch('/api/admin/overview', {headers});
+        if (res.ok) {
+          const d = await res.json();
+          document.getElementById('stat-requests').innerText = d.total_requests;
+          document.getElementById('stat-bridged').innerText = d.total_transformations;
+          document.getElementById('stat-mappings').innerText = (d.approved_mappings || 0) + (d.pending_mappings || 0);
+          document.getElementById('stat-latency').innerText = `${d.avg_latency_ms} ms`;
+        }
+      } catch (e) {}
+    }
+
+    async function loadMappings() {
+      const headers = authToken ? {'Authorization': `Bearer ${authToken}`} : {};
+      const container = document.getElementById('mappings-list');
+      try {
+        const res = await fetch('/api/projects/default_project/mappings', {headers});
+        if (res.ok) {
+          const mappings = await res.json();
+          if (!mappings || mappings.length === 0) {
+            container.innerHTML = `
+              <div style="padding: 2rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 1px dashed var(--border); border-radius: 10px;">
+                No breaking changes detected yet. When an external API changes a field name, SHIM will propose a mapping rule here.
+              </div>
+            `;
+            return;
+          }
+          let html = '';
+          mappings.forEach(m => {
+            const isApproved = m.status === 'APPROVED';
+            html += `
+              <div class="mapping-item">
+                <div>
+                  <div class="mapping-fields">
+                    <span class="field-source">"${m.source_field}"</span>
+                    <span style="color: var(--text-muted);">&rarr;</span>
+                    <span class="field-target">"${m.target_field}"</span>
+                    <span class="status-pill ${isApproved ? 'pill-approved' : 'pill-pending'}">${m.status}</span>
+                  </div>
+                  <div class="mapping-meta">
+                    ${m.explanation || 'Semantic match'} &bull; Similarity: ${(m.similarity_score * 100).toFixed(0)}%
+                  </div>
+                </div>
+                <div>
+                  ${!isApproved ? `<button class="btn-approve" onclick="approveMapping('${m.id}')">Approve</button>` : `<span style="color:#34d399; font-size:0.8rem; font-weight:600;">✓ Active</span>`}
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        }
+      } catch (e) {}
+    }
+
+    async function approveMapping(id) {
+      const headers = authToken ? {'Authorization': `Bearer ${authToken}`} : {};
+      await fetch(`/api/mappings/${id}/approve`, {method: 'POST', headers});
+      refreshAll();
+    }
+
+    async function loadTelemetry() {
+      const headers = authToken ? {'Authorization': `Bearer ${authToken}`} : {};
+      const tbody = document.getElementById('telemetry-tbody');
+      try {
+        const res = await fetch('/api/projects/default_project/history', {headers});
+        if (res.ok) {
+          const logs = await res.json();
+          if (!logs || logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted);">Listening for requests...</td></tr>';
+            return;
+          }
+          let html = '';
+          logs.slice(0, 8).forEach(l => {
+            const timeStr = new Date(l.timestamp * 1000).toLocaleTimeString();
+            html += `
+              <tr>
+                <td>${timeStr}</td>
+                <td><code>${l.endpoint_path}</code></td>
+                <td><span style="color: ${l.status_code === 200 ? '#34d399' : '#f87171'}">${l.status_code}</span></td>
+                <td>${l.transformation_occurred ? '<span style="color:#38bdf8; font-weight:600;">Yes</span>' : '<span style="color:#64748b;">Direct</span>'}</td>
+                <td>${l.latency_ms} ms</td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
+        }
+      } catch (e) {}
+    }
+
+    initAuth();
+    setInterval(refreshAll, 4000);
+  </script>
+</body>
+</html>

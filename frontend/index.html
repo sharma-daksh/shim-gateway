@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHIM — Adaptive API Compatibility Layer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508;
+      --surface: rgba(14, 15, 22, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(255, 255, 255, 0.18);
+      --crimson: #e11d48;
+      --crimson-glow: rgba(225, 29, 72, 0.45);
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+      --emerald: #10b981;
+      --cyan: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Central Vertical Laser Beam & Atmospheric Horizon Glow */
+    .vertical-beam {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 820px;
+      background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.9) 0%, 
+        rgba(244, 63, 94, 0.75) 35%, 
+        rgba(225, 29, 72, 0.35) 75%, 
+        rgba(225, 29, 72, 0) 100%);
+      box-shadow: 
+        0 0 35px 4px rgba(225, 29, 72, 0.55),
+        0 0 90px 18px rgba(225, 29, 72, 0.25);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .beam-aura {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 580px;
+      height: 680px;
+      background: radial-gradient(ellipse at center, rgba(225, 29, 72, 0.14) 0%, rgba(136, 19, 55, 0.05) 45%, transparent 70%);
+      filter: blur(45px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating Pill Navbar */
+    .navbar-wrapper {
+      position: sticky;
+      top: 24px;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding: 0 1.5rem;
+    }
+
+    .pill-nav {
+      width: 100%;
+      max-width: 880px;
+      background: rgba(12, 13, 18, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 9999px;
+      padding: 0.65rem 0.85rem 0.65rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 16px;
+      height: 20px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #fb7185 0%, #e11d48 100%);
+      box-shadow: 0 0 14px rgba(225, 29, 72, 0.8);
+      display: inline-block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 400;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: #ffffff;
+    }
+
+    .btn-pill-red {
+      background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.58rem 1.35rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(225, 29, 72, 0.55);
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      white-space: nowrap;
+    }
+
+    .btn-pill-red:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 35px rgba(244, 63, 94, 0.85);
+      background: linear-gradient(180deg, #fb7185 0%, #e11d48 100%);
+    }
+
+    /* Centered Editorial Hero */
+    .hero {
+      position: relative;
+      z-index: 10;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 5.5rem 1.5rem 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(18, 18, 26, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 25px rgba(225, 29, 72, 0.25);
+    }
+
+    .hero-pill-badge span.spark {
+      color: #f43f5e;
+      font-size: 0.95rem;
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 6vw, 4.75rem);
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      color: #ffffff;
+    }
+
+    .hero-title .w-bold {
+      font-weight: 800;
+    }
+
+    .hero-title .w-light {
+      font-weight: 200;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .hero-subtitle {
+      font-size: 1.08rem;
+      font-weight: 300;
+      line-height: 1.65;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Unified Pill Action Bar */
+    .hero-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 16, 22, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      padding: 0.45rem 0.5rem 0.45rem 1.5rem;
+      width: 100%;
+      max-width: 510px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(225, 29, 72, 0.15);
+      margin-bottom: 3.5rem;
+    }
+
+    .cli-command {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Horizon Frame & Centered Glowing Dotted Sphere */
+    .horizon-stage {
+      position: relative;
+      width: 100%;
+      max-width: 1060px;
+      height: 320px;
+      margin: 0 auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      background: radial-gradient(circle at 50% 0%, rgba(225, 29, 72, 0.22) 0%, rgba(15, 16, 24, 0.4) 45%, transparent 75%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: hidden;
+    }
+
+    .horizon-flare {
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 75%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(244, 63, 94, 0.8) 35%, #ffffff 50%, rgba(244, 63, 94, 0.8) 65%, transparent 100%);
+      box-shadow: 0 0 30px 3px rgba(225, 29, 72, 0.85);
+    }
+
+    .horizon-apex-dot {
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 20px 6px #f43f5e;
+      z-index: 5;
+    }
+
+    #sphere-canvas {
+      width: 340px;
+      height: 340px;
+      margin-top: -30px;
+    }
+
+    /* Section Styles */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 5.5rem 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.1rem);
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+      margin-bottom: 0.85rem;
+    }
+
+    .section-title .w-bold { font-weight: 800; }
+    .section-title .w-light { font-weight: 200; color: rgba(255, 255, 255, 0.82); }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-weight: 300;
+      font-size: 1rem;
+    }
+
+    /* Preset Domain Switcher Pills */
+    .preset-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.65rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .preset-tab {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-tab.active {
+      background: rgba(225, 29, 72, 0.15);
+      border-color: rgba(244, 63, 94, 0.5);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(225, 29, 72, 0.25);
+    }
+
+    /* Strictly Fixed 3-Column Scan & Bridge Grid */
+    .scan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 960px) {
+      .scan-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .scan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      height: 315px;
+      min-width: 0;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+    }
+
+    .scan-card.center-bridge {
+      border-color: rgba(244, 63, 94, 0.35);
+      box-shadow: 0 20px 50px rgba(225, 29, 72, 0.12);
+    }
+
+    .card-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      flex-shrink: 0;
+    }
+
+    .card-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-tag {
+      font-size: 0.72rem;
+      padding: 0.22rem 0.65rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .tag-red { background: rgba(244, 63, 94, 0.18); color: #fb7185; }
+    .tag-cyan { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+
+    /* Center Bridge Rows */
+    .bridge-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      font-size: 0.85rem;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .bridge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 22px;
+    }
+
+    .bridge-row span.label {
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .bridge-row strong.val {
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+
+    .bridge-memo-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.85rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.48;
+      height: 82px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Properly formatted multi-line pre */
+    .json-pre {
+      background: #030305;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 1.35rem 1.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.84rem;
+      line-height: 1.85;
+      color: #e2e8f0;
+      white-space: pre;
+      overflow-x: auto;
+      margin: 0;
+      flex: 1;
+      display: block;
+    }
+
+    .j-key { color: #93c5fd; }
+    .j-str { color: #86efac; }
+    .j-num { color: #fca5a5; }
+    .j-diff-old {
+      background: rgba(244, 63, 94, 0.22);
+      color: #fda4af;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border-left: 2px solid #f43f5e;
+    }
+    .j-diff-new {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border-left: 2px solid #10b981;
+    }
+
+    /* Controls Bar */
+    .action-controls {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      padding: 0.65rem 1.35rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Getting Started Steps Section */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+
+    @media (max-width: 860px) {
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.85rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .step-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(225, 29, 72, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fb7185;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .step-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      color: #fff;
+    }
+
+    .step-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .step-code {
+      margin-top: 1rem;
+      background: #030305;
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+    }
+
+    /* Typography Weight Strip Showcase */
+    .craft-strip {
+      max-width: 1100px;
+      margin: 2rem auto 4rem;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .craft-headline {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 2.2rem;
+    }
+
+    .weights-row {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      color: #cbd5e1;
+      font-size: 1.35rem;
+    }
+
+    .weights-row span.slash {
+      color: rgba(255, 255, 255, 0.2);
+      font-weight: 300;
+    }
+
+    .w-item {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .w-item small {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 0.15rem;
+    }
+
+    /* Elevated VS Code Extension Card */
+    .vscode-card {
+      max-width: 980px;
+      margin: 0 auto;
+      background: linear-gradient(145deg, rgba(24, 20, 32, 0.92) 0%, rgba(10, 11, 18, 0.98) 100%);
+      border: 1px solid rgba(244, 63, 94, 0.38);
+      border-radius: 24px;
+      padding: 3.25rem;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 2.75rem;
+      align-items: center;
+      box-shadow: 
+        0 25px 70px rgba(0, 0, 0, 0.85),
+        0 0 45px rgba(225, 29, 72, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    @media (max-width: 820px) {
+      .vscode-card {
+        grid-template-columns: 1fr;
+        padding: 2rem;
+      }
+    }
+
+    .vscode-notif-box {
+      background: #06070b;
+      border: 1px solid rgba(244, 63, 94, 0.45);
+      border-radius: 14px;
+      padding: 1.35rem 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.75;
+      color: #e2e8f0;
+      white-space: pre;
+      overflow-x: auto;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(225, 29, 72, 0.12);
+    }
+
+    /* Clean Footer with Creator Social Links */
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem 3.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .footer-brand {
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .footer-socials {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .social-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Central Vertical Beam & Glow -->
+  <div class="vertical-beam"></div>
+  <div class="beam-aura"></div>
+
+  <!-- Floating Pill Navbar -->
+  <div class="navbar-wrapper">
+    <nav class="pill-nav">
+      <a href="#" class="nav-brand">
+        <span class="brand-icon"></span>
+        <span>SHIM</span>
+      </a>
+      <div class="nav-links">
+        <a href="#home">Home</a>
+        <a href="#scanner">Live Scan</a>
+        <a href="#getting-started">Get Started</a>
+        <a href="#extension">VS Code</a>
+      </div>
+      <a href="/download/shim-vscode-extension.vsix" class="btn-pill-red">
+        Download
+      </a>
+    </nav>
+  </div>
+
+  <!-- Centered Hero Section -->
+  <section class="hero" id="home">
+    <div class="hero-pill-badge">
+      <span class="spark">✦</span>
+      <span>Zero-Downtime API Evolution</span>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="w-bold">The Adaptive</span> <span class="w-light">API Layer</span><br>
+      <span class="w-light">for</span> <span class="w-bold">Modern</span> <span class="w-light">Engineers</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Detect breaking JSON changes, match renamed fields with subword embeddings, and auto-bridge responses across any REST API—without touching production code.
+    </p>
+
+    <!-- Single Pill Action Bar -->
+    <div class="hero-action-bar">
+      <div class="cli-command">
+        <span style="color: #f43f5e;">$</span>
+        <span>code --install-extension shim.vsix</span>
+      </div>
+      <a href="/download/shim-vscode-extension.vsix" class="btn-pill-red">
+        Get Extension
+      </a>
+    </div>
+
+    <!-- Horizon Frame + Rotating Dotted Sphere -->
+    <div class="horizon-stage">
+      <div class="horizon-flare"></div>
+      <div class="horizon-apex-dot"></div>
+      <canvas id="sphere-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- Live Scan & Transform Section -->
+  <section class="section" id="scanner">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="w-bold">Scan</span> <span class="w-light">breakings.</span> <span class="w-bold">Bridge</span> <span class="w-light">instantly.</span>
+      </h2>
+      <p class="section-sub">Works universally across Auth, Logistics, AI, E-Commerce, or any JSON API.</p>
+    </div>
+
+    <!-- Universal API Presets -->
+    <div class="preset-tabs">
+      <button class="preset-tab active" onclick="selectPreset('users', this)">User Profile API</button>
+      <button class="preset-tab" onclick="selectPreset('orders', this)">Logistics & Shipping API</button>
+      <button class="preset-tab" onclick="selectPreset('payments', this)">Checkout API</button>
+      <button class="preset-tab" onclick="selectPreset('unknown', this)">Unseen Custom Field</button>
+    </div>
+
+    <div class="scan-grid">
+      <!-- Column 1: External API Response -->
+      <div class="scan-card">
+        <div class="card-top-bar">
+          <span class="card-label">1. External API Response</span>
+          <span class="status-tag tag-green" id="tag-upstream">Baseline v1</span>
+        </div>
+        <pre class="json-pre" id="json-upstream">{
+  <span class="j-key">"user_id"</span>: <span class="j-str">"USR-902"</span>,
+  <span class="j-diff-new"><span class="j-key">"email"</span>: <span class="j-str">"dev@shim.io"</span></span>,
+  <span class="j-key">"role"</span>: <span class="j-str">"engineer"</span>
+}</pre>
+      </div>
+
+      <!-- Column 2: SHIM Vector Bridge -->
+      <div class="scan-card center-bridge">
+        <div class="card-top-bar">
+          <span class="card-label">2. SHIM Vector Bridge</span>
+          <span class="status-tag tag-cyan" id="tag-bridge">Monitoring</span>
+        </div>
+        <div class="bridge-rows">
+          <div class="bridge-row">
+            <span class="label">Schema Status</span>
+            <strong class="val" id="bridge-status" style="color: #34d399;">Matches Baseline</strong>
+          </div>
+          <div class="bridge-row">
+            <span class="label">Detected Change</span>
+            <strong class="val" id="bridge-diff" style="color: #cbd5e1;">None</strong>
+          </div>
+          <div class="bridge-row">
+            <span class="label">Vector Similarity</span>
+            <strong class="val" id="bridge-score" style="color: #f43f5e;">100%</strong>
+          </div>
+          <div class="bridge-memo-box" id="bridge-note">
+            Tree structure verified. Passing payload with 0.01ms overhead.
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: What Your App Receives -->
+      <div class="scan-card">
+        <div class="card-top-bar">
+          <span class="card-label">3. Your App Receives</span>
+          <span class="status-tag tag-green" id="tag-app">Protected</span>
+        </div>
+        <pre class="json-pre" id="json-app">{
+  <span class="j-key">"user_id"</span>: <span class="j-str">"USR-902"</span>,
+  <span class="j-diff-new"><span class="j-key">"email"</span>: <span class="j-str">"dev@shim.io"</span></span>,
+  <span class="j-key">"role"</span>: <span class="j-str">"engineer"</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="action-controls">
+      <button class="btn-ghost" onclick="triggerBaseline()">1. Send Normal Response</button>
+      <button class="btn-ghost" style="border-color: rgba(244,63,94,0.45); color: #fda4af;" onclick="triggerDrift()">2. Simulate Breaking API Change</button>
+      <button class="btn-pill-red" id="btn-bridge" onclick="triggerBridge()" disabled style="opacity: 0.4; cursor: not-allowed;">3. Approve & Auto-Bridge</button>
+    </div>
+  </section>
+
+  <!-- Getting Started Section for Users -->
+  <section class="section" id="getting-started" style="padding-top: 2rem;">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="w-bold">Getting</span> <span class="w-light">started</span> <span class="w-bold">in 3 steps</span>
+      </h2>
+      <p class="section-sub">Simple setup designed to protect local and production environments in seconds.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-badge">1</div>
+        <h3 class="step-title">Download Extension</h3>
+        <p class="step-desc">
+          Click Download to grab the <code>shim-vscode-extension.vsix</code> package directly to your computer.
+        </p>
+        <div class="step-code">1-Click VSIX Package</div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-badge">2</div>
+        <h3 class="step-title">Select File in VS Code</h3>
+        <p class="step-desc">
+          In VS Code, press <code>Ctrl+Shift+X</code>, click the three dots <code>...</code> at the top of the Extensions sidebar, click <strong>Install from VSIX...</strong>, and choose the downloaded file.
+        </p>
+        <div class="step-code">Extensions &rarr; ... &rarr; Install from VSIX</div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-badge">3</div>
+        <h3 class="step-title">Guard Your APIs</h3>
+        <p class="step-desc">
+          Route your requests through the SHIM Proxy (port 8000). The extension displays <strong>🛡️ SHIM: Active</strong> in your status bar and alerts you when schemas drift.
+        </p>
+        <div class="step-code">http://127.0.0.1:8000/</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nohemi-Inspired Typography Weight Showcase -->
+  <section class="craft-strip" id="architecture">
+    <h2 class="craft-headline">
+      <span style="font-weight: 700;">SHIM</span> <span style="font-weight: 200;">has</span><br>
+      <span style="font-weight: 200;">nine</span> <span style="font-weight: 800;">finely engineered</span><br>
+      <span style="font-weight: 800;">protection</span> <span style="font-weight: 200;">layers</span>
+    </h2>
+
+    <div class="weights-row">
+      <div class="w-item"><small>01</small><span style="font-weight: 200;">Proxy</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>02</small><span style="font-weight: 300;">Tree Diff</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>03</small><span style="font-weight: 400;">N-Gram Vectors</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>04</small><span style="font-weight: 500;">Type Guard</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>05</small><span style="font-weight: 600;">Depth Check</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>06</small><span style="font-weight: 700;">Safe Fallback</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>07</small><span style="font-weight: 800;">Zero-Fab</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>08</small><span style="font-weight: 800;">SQLite Memory</span></div>
+      <span class="slash">/</span>
+      <div class="w-item"><small>09</small><span style="font-weight: 900;">IDE Sync</span></div>
+    </div>
+  </section>
+
+  <!-- Elevated VS Code Extension Card -->
+  <section class="section" id="extension">
+    <div class="vscode-card">
+      <div>
+        <div class="hero-pill-badge" style="margin-bottom: 1.1rem; border-color: rgba(244, 63, 94, 0.35);">
+          <span class="spark">✦</span>
+          <span>Real-Time IDE Guard</span>
+        </div>
+        <h3 style="font-size: 2.15rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.9rem; line-height: 1.15;">
+          Approve mappings <span style="font-weight: 200;">inside VS Code.</span>
+        </h3>
+        <p style="color: #cbd5e1; font-weight: 300; font-size: 0.98rem; line-height: 1.65; margin-bottom: 1.85rem;">
+          Review inferred field matches, inspect confidence scores, and approve schema bridges with a single click—keeping you in complete control before any live payload is rewritten.
+        </p>
+        <a href="/download/shim-vscode-extension.vsix" class="btn-pill-red">
+          Download .VSIX Extension
+        </a>
+      </div>
+
+      <div>
+        <pre class="vscode-notif-box"><span style="color: #64748b;">// VS Code Notification</span>
+<span style="color: #f43f5e; font-weight: 600;">[SHIM Guard]</span> Drift detected on GET /v1/users
+Removed : <span style="color: #fda4af;">"email"</span> (string)
+Added   : <span style="color: #6ee7b7;">"contact_email"</span> (string)
+Match   : <span style="color: #38bdf8;">91% Subword Cosine Similarity</span>
+
+<span style="color: #10b981; font-weight: 600;">[ Approve Mapping ]</span>   <span style="color: #94a3b8;">[ Ignore ]</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clean Footer with Creator Social Links -->
+  <footer>
+    <div class="footer-brand">SHIM — Adaptive API Compatibility Platform</div>
+    <div class="footer-socials">
+      <a href="https://github.com/sharma-daksh" target="_blank" rel="noopener noreferrer" class="social-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/daksh-sharma-d/" target="_blank" rel="noopener noreferrer" class="social-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        LinkedIn
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // --- 3D Rotating Dotted Particle Sphere ---
+    const canvas = document.getElementById('sphere-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function initCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = 340 * dpr;
+      canvas.height = 340 * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    initCanvas();
+
+    const dots = [];
+    const numLat = 18;
+    const numLon = 32;
+    const radius = 125;
+
+    for (let i = 0; i <= numLat; i++) {
+      const theta = (i * Math.PI) / numLat;
+      for (let j = 0; j < numLon; j++) {
+        const phi = (j * 2 * Math.PI) / numLon;
+        dots.push({
+          x: radius * Math.sin(theta) * Math.cos(phi),
+          y: radius * Math.cos(theta),
+          z: radius * Math.sin(theta) * Math.sin(phi)
+        });
+      }
+    }
+
+    let rotY = 0;
+    let rotX = 0.25;
+
+    function animateSphere() {
+      ctx.clearRect(0, 0, 340, 340);
+      const cx = 170;
+      const cy = 165;
+
+      rotY += 0.008;
+
+      const glow = ctx.createRadialGradient(cx, cy - 30, 5, cx, cy, radius * 1.15);
+      glow.addColorStop(0, 'rgba(244, 63, 94, 0.32)');
+      glow.addColorStop(0.5, 'rgba(225, 29, 72, 0.12)');
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      const projected = dots.map(d => {
+        let x1 = d.x * Math.cos(rotY) - d.z * Math.sin(rotY);
+        let z1 = d.z * Math.cos(rotY) + d.x * Math.sin(rotY);
+        let y2 = d.y * Math.cos(rotX) - z1 * Math.sin(rotX);
+        let z2 = z1 * Math.cos(rotX) + d.y * Math.sin(rotX);
+
+        return { x: x1, y: y2, z: z2 };
+      });
+
+      projected.sort((a, b) => a.z - b.z);
+
+      for (const p of projected) {
+        const depth = (p.z + radius) / (2 * radius);
+        const alpha = 0.12 + depth * 0.82;
+        const size = 1.0 + depth * 1.4;
+
+        ctx.beginPath();
+        ctx.arc(cx + p.x, cy + p.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = depth > 0.65 
+          ? `rgba(251, 113, 133, ${alpha})` 
+          : `rgba(225, 29, 72, ${alpha})`;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(animateSphere);
+    }
+    animateSphere();
+
+    // --- Interactive Multi-Domain JSON Scan & Transform Logic ---
+    const presets = {
+      users: {
+        idKey: '"user_id"', idVal: '"USR-902"',
+        oldKey: '"email"', newKey: '"contact_email"', val: '"dev@shim.io"',
+        extraKey: '"role"', extraVal: '"engineer"',
+        score: '91% (Subword Match)',
+        memoDrift: 'Detected "email" removed and "contact_email" added. High subword n-gram similarity.',
+        memoBridged: 'Auto-rewriting "contact_email" ➔ "email" in 0.01ms.'
+      },
+      orders: {
+        idKey: '"shipment_id"', idVal: '"SHP-441"',
+        oldKey: '"zip_code"', newKey: '"postal_code"', val: '"400001"',
+        extraKey: '"carrier"', extraVal: '"FedEx"',
+        score: '94% (Cluster Match)',
+        memoDrift: 'Detected "zip_code" replaced by "postal_code". Structural string type verified.',
+        memoBridged: 'Auto-rewriting "postal_code" ➔ "zip_code" in 0.01ms.'
+      },
+      payments: {
+        idKey: '"payment_id"', idVal: '"P101"',
+        oldKey: '"price"', newKey: '"amount"', val: '500',
+        extraKey: '"status"', extraVal: '"success"',
+        score: '94% (Semantic Match)',
+        memoDrift: 'Detected "price" replaced by "amount". Compatible integer type verified.',
+        memoBridged: 'Auto-rewriting "amount" ➔ "price" in 0.01ms.'
+      },
+      unknown: {
+        idKey: '"record_id"', idVal: '"REC-09"',
+        oldKey: '"legacy_token"', newKey: '"x99_opaque_hash"', val: '"0x8f9a..."',
+        extraKey: '"version"', extraVal: '2',
+        score: '38% (Held for Review)',
+        memoDrift: 'Unseen field "x99_opaque_hash" has low similarity. Held safely in PENDING until you approve.',
+        memoBridged: 'Explicitly approved by developer. Rewriting "x99_opaque_hash" ➔ "legacy_token".'
+      }
+    };
+
+    let currentPreset = 'users';
+
+    function formatJsonBlock(p, fieldKey, highlightClass) {
+      const isNum = !p.val.startsWith('"');
+      const valSpan = `<span class="${isNum ? 'j-num' : 'j-str'}">${p.val}</span>`;
+      const extraIsNum = !String(p.extraVal).startsWith('"');
+      const extraSpan = `<span class="${extraIsNum ? 'j-num' : 'j-str'}">${p.extraVal}</span>`;
+
+      return `{\n` +
+             `  <span class="j-key">${p.idKey}</span>: <span class="j-str">${p.idVal}</span>,\n` +
+             `  <span class="${highlightClass}"><span class="j-key">${fieldKey}</span>: ${valSpan}</span>,\n` +
+             `  <span class="j-key">${p.extraKey}</span>: ${extraSpan}\n` +
+             `}`;
+    }
+
+    function selectPreset(key, btn) {
+      currentPreset = key;
+      document.querySelectorAll('.preset-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      triggerBaseline();
+    }
+
+    function triggerBaseline() {
+      const p = presets[currentPreset];
+      document.getElementById('tag-upstream').innerText = 'Baseline v1';
+      document.getElementById('tag-upstream').className = 'status-tag tag-green';
+      document.getElementById('json-upstream').innerHTML = formatJsonBlock(p, p.oldKey, 'j-diff-new');
+
+      document.getElementById('tag-bridge').innerText = 'Monitoring';
+      document.getElementById('bridge-status').innerText = 'Matches Baseline';
+      document.getElementById('bridge-status').style.color = '#34d399';
+      document.getElementById('bridge-diff').innerText = 'None';
+      document.getElementById('bridge-score').innerText = '100%';
+      document.getElementById('bridge-note').innerText = 'Tree structure verified. Passing payload with 0.01ms overhead.';
+
+      document.getElementById('tag-app').innerText = 'Protected';
+      document.getElementById('tag-app').className = 'status-tag tag-green';
+      document.getElementById('json-app').innerHTML = formatJsonBlock(p, p.oldKey, 'j-diff-new');
+
+      const btn = document.getElementById('btn-bridge');
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+      btn.innerText = '3. Approve & Auto-Bridge';
+
+      fetch('/payments/P101?mode=original', {headers: {'X-API-Key': 'shim_live_default_key'}}).catch(() => {});
+    }
+
+    function triggerDrift() {
+      const p = presets[currentPreset];
+      document.getElementById('tag-upstream').innerText = 'Breaking v2';
+      document.getElementById('tag-upstream').className = 'status-tag tag-red';
+      document.getElementById('json-upstream').innerHTML = formatJsonBlock(p, p.newKey, 'j-diff-old');
+
+      document.getElementById('tag-bridge').innerText = 'Drift Detected';
+      document.getElementById('bridge-status').innerText = 'Action Required';
+      document.getElementById('bridge-status').style.color = '#fb7185';
+      document.getElementById('bridge-diff').innerText = `${p.oldKey} ➔ ${p.newKey}`;
+      document.getElementById('bridge-score').innerText = p.score;
+      document.getElementById('bridge-note').innerText = p.memoDrift;
+
+      document.getElementById('tag-app').innerText = 'Expects ' + p.oldKey;
+      document.getElementById('tag-app').className = 'status-tag tag-red';
+      document.getElementById('json-app').innerHTML = formatJsonBlock(p, p.newKey, 'j-diff-old');
+
+      const btn = document.getElementById('btn-bridge');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.innerText = '3. Approve & Auto-Bridge';
+
+      fetch('/payments/P101?mode=changed', {headers: {'X-API-Key': 'shim_live_default_key'}}).catch(() => {});
+    }
+
+    function triggerBridge() {
+      const p = presets[currentPreset];
+      document.getElementById('tag-bridge').innerText = 'Bridged ✓';
+      document.getElementById('bridge-status').innerText = 'Auto-Transforming';
+      document.getElementById('bridge-status').style.color = '#34d399';
+      document.getElementById('bridge-note').innerText = p.memoBridged;
+
+      document.getElementById('tag-app').innerText = 'Bridged v1';
+      document.getElementById('tag-app').className = 'status-tag tag-green';
+      document.getElementById('json-app').innerHTML = formatJsonBlock(p, p.oldKey, 'j-diff-new');
+
+      const btn = document.getElementById('btn-bridge');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.innerText = 'Active & Bridged ✓';
+    }
+  </script>
+</body>
+</html>
