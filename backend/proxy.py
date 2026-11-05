@@ -1,3 +1,11 @@
+import sys
+import os
+
+# Ensure backend directory is in sys.path so modules can import config, database, etc. regardless of cwd
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from fastapi import FastAPI, Request, Response, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -7,7 +15,6 @@ import json
 import logging
 import time
 import uuid
-import os
 import secrets
 import hashlib
 from typing import Optional, Dict, Any, List
@@ -124,7 +131,7 @@ async def serve_landing_page():
         return FileResponse(LANDING_PAGE_PATH)
     return {"message": "SHIM Landing Page"}
 
-# --- Serve Developer Console (For VS Code Extension & Local API Inspection) ---
+# --- Serve Developer Console ---
 @app.get("/console", include_in_schema=False)
 @app.get("/admin", include_in_schema=False)
 @app.get("/dashboard", include_in_schema=False)
@@ -142,7 +149,7 @@ async def download_vsix(request: Request):
     user_agent = request.headers.get("user-agent", "unknown")
     client_host = request.client.host if request.client else "127.0.0.1"
     ip_hash = hashlib.sha256(client_host.encode("utf-8")).hexdigest()[:16]
-    record_extension_download(user_agent=user_agent, ip_hash=ip_hash, version="1.0.0")
+    record_extension_download(user_agent=user_agent, ip_hash=ip_hash, version="1.0.1")
 
     if os.path.exists(VSIX_PATH):
         return FileResponse(
