@@ -11,7 +11,7 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sharma-daksh"
+    "url": "https://github.com/sharma-daksh/shim-gateway"
   },
   "keywords": [
     "api",
@@ -40,7 +40,7 @@
       "properties": {
         "shim.gatewayUrl": {
           "type": "string",
-          "default": "http://127.0.0.1:8000",
+          "default": "https://shim-gateway.onrender.com",
           "description": "The URL of your running SHIM proxy gateway."
         },
         "shim.apiKey": {
