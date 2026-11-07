@@ -1,0 +1,48 @@
+{
+  "name": "shim-gateway",
+  "version": "1.0.0",
+  "description": "Adaptive API compatibility client & CLI. Detects breaking response changes and auto-bridges equivalent fields with zero downtime.",
+  "main": "index.js",
+  "module": "index.mjs",
+  "types": "index.d.ts",
+  "bin": {
+    "shim": "bin/cli.js",
+    "shim-gateway": "bin/cli.js"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "api",
+    "proxy",
+    "gateway",
+    "schema",
+    "drift",
+    "rest",
+    "compatibility",
+    "resilience",
+    "fetch",
+    "adapter"
+  ],
+  "author": "Daksh Sharma <daksh018@outlook.com> (https://github.com/sharma-daksh)",
+  "license": "MIT",
+  "homepage": "https://shim-gateway.onrender.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sharma-daksh/shim-gateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sharma-daksh/shim-gateway/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
